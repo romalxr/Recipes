@@ -1,48 +1,34 @@
 package recipes.registration;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import recipes.Recipe;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
 public class RegistrationController {
 
-    @Autowired
-    UserRepositoryH2 userRepo;
-    @Autowired
-    PasswordEncoder encoder;
+    final UserRepositoryH2 userRepo;
+    final PasswordEncoder encoder;
 
-    @GetMapping("api/register")
-    public ResponseEntity<User> register(@RequestParam String email, @RequestParam String password) {
-        return registerIn(email, password);
+    @Autowired
+    public RegistrationController(UserRepositoryH2 userRepo, PasswordEncoder encoder) {
+        this.userRepo = userRepo;
+        this.encoder = encoder;
     }
 
     @PostMapping("api/register")
-    public ResponseEntity<User> register(@Valid @RequestBody SimpleUser simpleUser) {
-        return registerIn(simpleUser.getEmail(), simpleUser.getPassword());
-    }
-
-    private ResponseEntity<User> registerIn(String email, String password) {
-
-        List<User> ex = userRepo.findByUsernameIgnoreCase(email);
-        if (ex.size() > 0) {
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<User> register(@Valid @RequestBody User user) {
+        if (userRepo.existsById(user.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request");
         }
-
-        User user = new User();
-        user.setUsername(email);
-        user.setEmail(email);
-        user.setRole("ROLE_USER");
-        user.setPassword(encoder.encode(password));
-
+        user.setPassword(encoder.encode(user.getPassword()));
         userRepo.save(user);
-
         return ResponseEntity.of(Optional.of(user));
     }
 

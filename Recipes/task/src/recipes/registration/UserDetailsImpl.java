@@ -1,32 +1,27 @@
 package recipes.registration;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 
 public class UserDetailsImpl implements UserDetails {
     private final String username;
     private final String password;
-    private final List<GrantedAuthority> rolesAndAuthorities;
 
     public UserDetailsImpl(User user) {
-        username = user.getUsername();
+        username = user.getEmail();
         password = user.getPassword();
-        rolesAndAuthorities = List.of(new SimpleGrantedAuthority(user.getRole()));
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return rolesAndAuthorities;
+        return Collections.emptyList();
     }
 
     @Override
-    public String getPassword() {
-        return password;
-    }
+    public String getPassword() { return password; }
 
     @Override
     public String getUsername() {
